@@ -5,18 +5,21 @@ import com.heli.sampledemo.SampleDemo.dto.UserDTO;
 import com.heli.sampledemo.SampleDemo.entity.User;
 import com.heli.sampledemo.SampleDemo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-//The class provides services only. Calls DAO class's methods and provides nevessary services like creating,deleting,updating and fetching data.
+//The class provides services only. Calls DAO class's methods and provides necessary services like creating,deleting,updating and fetching data.
 @Service
 public class UserService implements IUserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
     public List<UserDTO> getAllUsers() {
@@ -47,6 +50,8 @@ public class UserService implements IUserService {
 
     @Override
     public void createUser(UserDTO user) {
+        //Encrypting password
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         userRepository.save(ApiDTOBuilder.userDTOToUser(user));
     }
 
