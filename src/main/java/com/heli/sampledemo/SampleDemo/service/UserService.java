@@ -51,6 +51,9 @@ public class UserService implements IUserService {
     @Override
     public void createUser(UserDTO user) {
         //Encrypting password
+        if(bCryptPasswordEncoder==null){
+            bCryptPasswordEncoder=new BCryptPasswordEncoder();
+        }
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         userRepository.save(ApiDTOBuilder.userDTOToUser(user));
     }

@@ -32,7 +32,6 @@ public class UserController {
     @RequestMapping(name="", value="/createuser", method=RequestMethod.POST, produces="application/json" )
     public ResponseEntity<UserDTO> create(@RequestBody UserDTO user) {
         try {
-
             service.createUser(user);
             return new ResponseEntity<>(HttpStatus.OK);
         }catch (Exception e){
