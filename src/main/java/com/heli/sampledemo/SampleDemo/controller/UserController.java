@@ -1,6 +1,7 @@
 package com.heli.sampledemo.SampleDemo.controller;
 
 import com.heli.sampledemo.SampleDemo.dto.UserDTO;
+import com.heli.sampledemo.SampleDemo.security.SHAAlgorithm;
 import com.heli.sampledemo.SampleDemo.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -63,28 +65,11 @@ public class UserController {
         }
     }
 
-    @RequestMapping(value="/authenticate", method=RequestMethod.POST, produces="application/json" )
-    public boolean authenticate(@PathVariable String username, @PathVariable String password) {
-        BCryptPasswordEncoder bCryptPasswordEncoder;
-        UserDTO user = service.getUserByUsername(username);
-        if(user != null){
-            String encryptedPass = user.getPassword();
-            try {
-                bCryptPasswordEncoder = new BCryptPasswordEncoder();
-                String encryptEnteredPassword = bCryptPasswordEncoder.encode(password);
-                if(encryptEnteredPassword.equals(encryptedPass)){
-                    return true;
-                }else
-                    return false;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        else{
-            System.out.println("Username doesn't exist! Please register yourself! :)");
+    @RequestMapping(value = "/welcome/{username}/{password}/", method = RequestMethod.GET, produces="application/json" )
+    public boolean authenticate(@PathVariable("username") String username,
+                                @PathVariable("password") String password) {
+        boolean status = service.authenticate(username, password);
+        return status;
 
-        }
-        return false;
     }
-
 }

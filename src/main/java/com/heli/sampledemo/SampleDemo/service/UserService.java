@@ -4,13 +4,16 @@ import com.heli.sampledemo.SampleDemo.dto.ApiDTOBuilder;
 import com.heli.sampledemo.SampleDemo.dto.UserDTO;
 import com.heli.sampledemo.SampleDemo.entity.User;
 import com.heli.sampledemo.SampleDemo.repository.UserRepository;
+import com.heli.sampledemo.SampleDemo.security.SHAAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 //The class provides services only. Calls DAO class's methods and provides necessary services like creating,deleting,updating and fetching data.
 @Service
@@ -18,9 +21,6 @@ public class UserService implements IUserService {
 
     @Autowired
     private UserRepository userRepository;
-
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-
     @Override
     public List<UserDTO> getAllUsers() {
 
@@ -49,12 +49,10 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public void createUser(UserDTO user) {
+    public void createUser(UserDTO user) throws NoSuchAlgorithmException {
         //Encrypting password
-        if(bCryptPasswordEncoder==null){
-            bCryptPasswordEncoder=new BCryptPasswordEncoder();
-        }
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        String passwordToEncrypt = user.getPassword();
+        user.setPassword(SHAAlgorithm.getSHA256(passwordToEncrypt));
         userRepository.save(ApiDTOBuilder.userDTOToUser(user));
     }
 
@@ -72,4 +70,32 @@ public class UserService implements IUserService {
         }
         return null;
     }
+
+    @Override
+    public boolean authenticate(String username, String password) {
+
+        User user = userRepository.findById(username).get();
+
+        if(user != null){
+            String encryptedPass = user.getEncrytedPassword();
+            System.out.println("Service fetched: "+encryptedPass);
+            try {
+                String encryptEnteredPassword = SHAAlgorithm.getSHA256(password);
+                System.out.println("User entered encrypted: "+encryptEnteredPassword);
+                if(encryptEnteredPassword.equals(encryptedPass)){
+                    return true;
+                }else
+                    return false;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else{
+            System.out.println("Username doesn't exist! Please register yourself first! :)");
+        }
+
+        return false;
+    }
+
+
 }
